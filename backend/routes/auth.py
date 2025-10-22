@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Query
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Query,Request
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from fastapi.responses import JSONResponse
@@ -90,3 +90,17 @@ def signin(user: schemas.UserLogin, db: Session = Depends(database.get_db)):
     # domain="socialhub-backend-se80.onrender.com" # set this to your backend domain (or leave None on localhost)
 )
     return response
+
+
+
+@router.get("/session")
+def check_session(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        return {"authenticated": False}
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {"authenticated": True, "user": payload}
+    except:
+        return {"authenticated": False}
